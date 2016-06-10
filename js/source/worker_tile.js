@@ -31,8 +31,6 @@ WorkerTile.prototype.parse = function(data, layerFamilies, actor, rawTileData, c
     var featureIndex = new FeatureIndex(this.coord, this.overscaling, collisionTile, data.layers);
     var sourceLayerCoder = new DictionaryCoder(data.layers ? Object.keys(data.layers).sort() : ['_geojsonTileLayer']);
 
-    var stats = { _total: 0 };
-
     var tile = this;
     var bucketsById = {};
     var bucketsBySourceLayer = {};
@@ -191,9 +189,6 @@ WorkerTile.prototype.parse = function(data, layerFamilies, actor, rawTileData, c
         }
 
         bucket.features = null;
-
-        stats._total += time;
-        stats[bucket.id] = (stats[bucket.id] || 0) + time;
     }
 
     function done() {
@@ -213,7 +208,6 @@ WorkerTile.prototype.parse = function(data, layerFamilies, actor, rawTileData, c
 
         callback(null, {
             buckets: nonEmptyBuckets.map(serializeBucket),
-            bucketStats: stats, // TODO put this in a separate message?
             featureIndex: featureIndex_.data,
             collisionTile: collisionTile_.data,
             collisionBoxArray: collisionBoxArray,
