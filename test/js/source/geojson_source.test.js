@@ -67,14 +67,14 @@ test('GeoJSONSource#setData', function(t) {
 // test('GeoJSONSource#reload', function(t) {
 //     t.test('before loaded', function(t) {
 //         var source = GeoJSONSource.create('id', {data: {}}, mockDispatcher);
-// 
+//
 //         t.doesNotThrow(function() {
 //             source.reload();
 //         }, null, 'reload ignored gracefully');
-// 
+//
 //         t.end();
 //     });
-// 
+//
 //     t.end();
 // });
 
@@ -182,7 +182,7 @@ test('GeoJSONSource#update', function(t) {
         var source = GeoJSONSource.create('id', {data: {}}, mockDispatcher);
         source.map = {
             transform: {}
-        }
+        };
 
         source.on('load', function () {
             source.setData({});
