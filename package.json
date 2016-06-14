@@ -58,6 +58,7 @@
     "lodash": "^4.13.1",
     "mapbox-gl-test-suite": "mapbox/mapbox-gl-test-suite#5c38f278f92688c68db115601663d5ac125a1961",
     "nyc": "^6.1.1",
+    "proxyquire": "^1.7.9",
     "remark": "4.2.2",
     "remark-html": "3.0.0",
     "sinon": "^1.15.4",
