@@ -5,8 +5,8 @@ var st = require('st');
 var http = require('http');
 var path = require('path');
 var sinon = require('sinon');
+var proxyquire = require('proxyquire');
 var Style = require('../../../js/style/style');
-var Source = require('../../../js/source/source');
 var SourceCache = require('../../../js/source/source_cache');
 var StyleLayer = require('../../../js/style/style_layer');
 var util = require('../../../js/util/util');
@@ -904,7 +904,51 @@ test('Style#setLayerZoomRange', function(t) {
 });
 
 test('Style#queryRenderedFeatures', function(t) {
-    var style = new Style({
+    var style;
+    var Style = proxyquire('../../../js/style/style', {
+        '../source/query-features': {
+            rendered: function(source, layers, queryGeom, params) {
+                if (source.id !== 'mapbox') {
+                    return [];
+                }
+
+                var features = {
+                    'land': [{
+                        type: 'Feature',
+                        layer: style._layers.land,
+                        geometry: {
+                            type: 'Polygon'
+                        }
+                    }, {
+                        type: 'Feature',
+                        layer: style._layers.land,
+                        geometry: {
+                            type: 'Point'
+                        }
+                    }],
+                    'landref': [{
+                        type: 'Feature',
+                        layer: style._layers.landref,
+                        geometry: {
+                            type: 'Line'
+                        }
+                    }]
+                };
+
+                if (params.layers) {
+                    for (var l in features) {
+                        if (params.layers.indexOf(l) < 0) {
+                            delete features[l];
+                        }
+                    }
+                }
+
+                return features;
+            }
+        }
+    });
+
+    style = new Style({
         "version": 8,
         "sources": {
             "mapbox": {
@@ -941,42 +985,6 @@ test('Style#queryRenderedFeatures', function(t) {
 
         // TODO: to fix this we can use proxyquire to mock
         // Source._queryRenderedVectorFeatures.
-        style.sources.mapbox.queryRenderedFeatures = function(position, params)
-        {
-            var features = {
-                'land': [{
-                    type: 'Feature',
-                    layer: style._layers.land,
-                    geometry: {
-                        type: 'Polygon'
-                    }
-                }, {
-                    type: 'Feature',
-                    layer: style._layers.land,
-                    geometry: {
-                        type: 'Point'
-                    }
-                }],
-                'landref': [{
-                    type: 'Feature',
-                    layer: style._layers.landref,
-                    geometry: {
-                        type: 'Line'
-                    }
-                }]
-            };
-
-            if (params.layers) {
-                for (var l in features) {
-                    if (params.layers.indexOf(l) < 0) {
-                        delete features[l];
-                    }
-                }
-            }
-
-            return features;
-        };
-
         t.test('returns feature type', function(t) {
             var results = style.queryRenderedFeatures([{column: 1, row: 1, zoom: 1}], {}, 0, 0);
             t.equal(results[0].geometry.type, 'Line');
