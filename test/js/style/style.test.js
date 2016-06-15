@@ -6,7 +6,8 @@ var http = require('http');
 var path = require('path');
 var sinon = require('sinon');
 var Style = require('../../../js/style/style');
-var VectorTileSource = require('../../../js/source/vector_tile_source');
+var Source = require('../../../js/source/source');
+var SourceCache = require('../../../js/source/source_cache');
 var StyleLayer = require('../../../js/style/style_layer');
 var util = require('../../../js/util/util');
 var browser = require('../../../js/util/browser');
@@ -20,13 +21,13 @@ function createStyleJSON(properties) {
 }
 
 function createSource() {
-    return new VectorTileSource({
+    return {
         type: 'vector',
         minzoom: 1,
         maxzoom: 10,
         attribution: 'Mapbox',
         tiles: ['http://example.com/{z}/{x}/{y}.png']
-    });
+    };
 }
 
 function createGeoJSONSource() {
@@ -69,7 +70,7 @@ test('Style', function(t) {
             }
         }));
         style.on('load', function() {
-            t.ok(style.getSource('mapbox') instanceof VectorTileSource);
+            t.ok(style.getSource('mapbox') instanceof SourceCache);
             t.end();
         });
     });
@@ -91,9 +92,9 @@ test('Style', function(t) {
             style.removeSource('-source-id-');
 
             var source = createSource();
+            source['vector_layers'] = [{ id: 'green' }];
             style.addSource('-source-id-', source);
             style.update();
-            source.vectorLayerIds = ['green'];
         });
 
         style.on('error', function(event) {
@@ -278,7 +279,7 @@ test('Style#addSource', function(t) {
         var style = new Style(createStyleJSON()),
             source = createSource();
         style.on('source.add', function(e) {
-            t.equal(e.source, source);
+            t.same(e.source.serialize(), source);
             t.end();
         });
         style.on('load', function () {
@@ -326,11 +327,11 @@ test('Style#addSource', function(t) {
         var source = createSource();
 
         function sourceEvent(e) {
-            t.equal(e.source, source);
+            t.same(e.source.serialize(), source);
         }
 
         function tileEvent(e) {
-            t.equal(e.source, source);
+            t.same(e.source.serialize(), source);
         }
 
         style.on('source.load',   sourceEvent);
@@ -344,12 +345,12 @@ test('Style#addSource', function(t) {
         style.on('load', function () {
             t.plan(7);
             style.addSource('source-id', source); // Fires load
-            source.fire('error');
-            source.fire('change');
-            source.fire('tile.add');
-            source.fire('tile.load');
-            source.fire('tile.error');
-            source.fire('tile.remove');
+            style.getSource('source-id').fire('error');
+            style.getSource('source-id').fire('change');
+            style.getSource('source-id').fire('tile.add');
+            style.getSource('source-id').fire('tile.load');
+            style.getSource('source-id').fire('tile.error');
+            style.getSource('source-id').fire('tile.remove');
         });
     });
 
@@ -388,7 +389,7 @@ test('Style#removeSource', function(t) {
         var style = new Style(createStyleJSON()),
             source = createSource();
         style.on('source.remove', function(e) {
-            t.equal(e.source, source);
+            t.same(e.source.serialize(), source);
             t.end();
         });
         style.on('load', function () {
@@ -432,6 +433,8 @@ test('Style#removeSource', function(t) {
 
         style.on('load', function () {
             style.addSource('source-id', source);
+            source = style.getSource('source-id');
+
             style.removeSource('source-id');
 
             source.fire('load');
@@ -498,6 +501,7 @@ test('Style#addLayer', function(t) {
 
         style.on('load', function() {
             var source = createSource();
+            source['vector_layers'] = [{id: 'green'}];
             style.addSource('-source-id-', source);
             style.addLayer({
                 'id': '-layer-id-',
@@ -505,7 +509,6 @@ test('Style#addLayer', function(t) {
                 'source': '-source-id-',
                 'source-layer': '-source-layer-'
             });
-            source.vectorLayerIds = ['green'];
         });
 
         style.on('error', function(event) {
@@ -936,7 +939,10 @@ test('Style#queryRenderedFeatures', function(t) {
         style._applyClasses([]);
         style._recalculate(0);
 
-        style.sources.mapbox.queryRenderedFeatures = function(position, params) {
+        // TODO: to fix this we can use proxyquire to mock
+        // Source._queryRenderedVectorFeatures.
+        style.sources.mapbox.queryRenderedFeatures = function(position, params)
+        {
             var features = {
                 'land': [{
                     type: 'Feature',
