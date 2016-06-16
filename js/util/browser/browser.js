@@ -1,7 +1,5 @@
 'use strict';
 
-var webworkify = require('webworkify');
-
 /**
  * Unlike js/util/browser.js, this code is written with the expectation
  * of a browser environment with a global 'window' object
@@ -77,10 +75,6 @@ exports.timed = function (fn, dur, ctx) {
  * @return {boolean}
  */
 exports.supported = require('mapbox-gl-js-supported');
-
-exports.createBlobURLForModule = function (targetModule) {
-    return URL.createObjectURL(webworkify(targetModule, {bare: true}));
-};
 
 exports.hardwareConcurrency = navigator.hardwareConcurrency || 8;
 
