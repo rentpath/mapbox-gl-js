@@ -1,6 +1,6 @@
 'use strict';
 
-var Evented = require('../util/Evented');
+var Evented = require('../util/evented');
 var util = require('../util/util');
 var urlResolve = require('resolve-url');
 var EXTENT = require('../data/bucket').EXTENT;
