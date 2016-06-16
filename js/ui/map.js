@@ -57,47 +57,51 @@ var defaultOptions = {
 };
 
 /**
- * Creates a map instance. This is usually the beginning of your map:
- * you tell Mapbox GL JS where to put the map by specifying a `container`
- * option, and the map's style with `style` and other attributes of the map,
- * and in return Mapbox GL JS initializes the map on your page and returns
- * a map variable that lets you programmatically call methods on the map.
+ * The `Map` object represents the map on your page. It exposes methods
+ * and properties that enable you to programmatically change the map,
+ * and fires events as users interact with it.
+ *
+ * You create a `Map` by specifying a `container` and other options.
+ * Then Mapbox GL JS initializes the map on the page and returns your `Map`
+ * object.
+ *
  * @class Map
  * @param {Object} options
- * @param {string|Element} options.container HTML element to initialize the map in (or element id as string)
- * @param {number} [options.minZoom=0] Minimum zoom of the map
- * @param {number} [options.maxZoom=20] Maximum zoom of the map
- * @param {Object|string} [options.style] Map style. This must be an an object conforming to the schema described in
- * the [style reference](https://mapbox.com/mapbox-gl-style-spec/), or a URL to a JSON style. To load a style from the
+ * @param {Element|string} options.container The HTML element to initialize the map in, or the element's string `id`.
+ * @param {number} [options.minZoom=0] The minimum zoom of the map (1-20).
+ * @param {number} [options.maxZoom=20] The maximum zoom of the map (1-20).
+ * @param {Object|string} [options.style] The map's style. This must be an a JSON object conforming to the schema described in
+ * the [style reference](https://mapbox.com/mapbox-gl-style-spec/), or a URL to a such an object. To load a style from the
  * Mapbox API, you can use a URL of the form `mapbox://styles/:owner/:style`, where `:owner` is your Mapbox account
  * name and `:style` is the style ID. Or you can use one of [the predefined Mapbox styles](https://www.mapbox.com/maps/).
- * The Style URLs of the predefined Mapbox styles are:
+ * The style URLs of the predefined Mapbox styles are:
  *  * `mapbox://styles/mapbox/streets-v9`
  *  * `mapbox://styles/mapbox/outdoors-v9`
  *  * `mapbox://styles/mapbox/light-v9`
  *  * `mapbox://styles/mapbox/dark-v9`
  *  * `mapbox://styles/mapbox/satellite-v9`
  *  * `mapbox://styles/mapbox/satellite-streets-v9`
- * @param {boolean} [options.hash=false] If `true`, the map will track and update the page URL according to map position
- * @param {boolean} [options.interactive=true] If `false`, no mouse, touch, or keyboard listeners are attached to the map, so it will not respond to input
- * @param {number} [options.bearingSnap=7] Snap to north threshold in degrees.
- * @param {Array} [options.classes] Style class names with which to initialize the map
+ * @param {boolean} [options.hash=false] If `true`, the map's position (zoom, center latitude, center longitude, and bearing) will be synced with the hash fragment of the page's URL.
+ *   For example, `http://path/to/my/page.html#2.59/39.26/53.07/-24.1`.
+ * @param {boolean} [options.interactive=true] If `false`, no mouse, touch, or keyboard listeners will be attached to the map, so it will not respond to interaction.
+ * @param {number} [options.bearingSnap=7] The threshold, measured in degrees, that determines when the map's bearing (rotation) will snap to north.
+ * @param {Array} [options.classes] Style class names with which to initialize the map.
  * @param {boolean} [options.attributionControl=true] If `true`, an attribution control will be added to the map.
  * @param {boolean} [options.failIfMajorPerformanceCaveat=false] If `true`, map creation will fail if the implementation determines that the performance of the created WebGL context would be dramatically lower than expected.
- * @param {boolean} [options.preserveDrawingBuffer=false] If `true`, The maps canvas can be exported to a PNG using `map.getCanvas().toDataURL();`. This is false by default as a performance optimization.
- * @param {LngLatBounds|Array<Array<number>>} [options.maxBounds] If set, the map is constrained to the given bounds.
- * @param {boolean} [options.scrollZoom=true] If `true`, enable the "scroll to zoom" interaction (see `ScrollZoomHandler`)
- * @param {boolean} [options.boxZoom=true] If `true`, enable the "box zoom" interaction (see `BoxZoomHandler`)
- * @param {boolean} [options.dragRotate=true] If `true`, enable the "drag to rotate" interaction (see `DragRotateHandler`).
- * @param {boolean} [options.dragPan=true] If `true`, enable the "drag to pan" interaction (see `DragPanHandler`).
- * @param {boolean} [options.keyboard=true] If `true`, enable keyboard shortcuts (see `KeyboardHandler`).
- * @param {boolean} [options.doubleClickZoom=true] If `true`, enable the "double click to zoom" interaction (see `DoubleClickZoomHandler`).
- * @param {boolean} [options.touchZoomRotate=true] If `true`, enable the "pinch to rotate and zoom" interaction (see `TouchZoomRotateHandler`).
- * @param {boolean} [options.trackResize=true]  If `true`, automatically resize the map when the browser window resizes.
- * @param {LngLat} [options.center] The geographic coordinate on which the map's initial viewport is centered.
- * @param {number} [options.zoom] The zoom level of the map's initial viewport.
- * @param {number} [options.bearing] The bearing (rotation) of the map's initial viewport measured in degrees counter-clockwise from north.
- * @param {number} [options.pitch] The pitch of the map's initial viewport measured in degrees.
+ * @param {boolean} [options.preserveDrawingBuffer=false] If `true`, the map's canvas can be exported to a PNG using `map.getCanvas().toDataURL();`. This is `false` by default as a performance optimization.
+ * @param {LngLatBounds|Array<Array<number>>} [options.maxBounds] If set, the map is constrained to the given bounds. // TODO: Can LngLatBounds be like LngLat, standing in for Array<Array<string>>
+ * @param {boolean} [options.scrollZoom=true] If `true`, the "scroll to zoom" interaction is enabled (see [`ScrollZoomHandler`](#ScrollZoomHandler)).
+ * @param {boolean} [options.boxZoom=true] If `true`, the "box zoom" interaction is enabled (see [`BoxZoomHandler`](#BoxZoomHandler)).
+ * @param {boolean} [options.dragRotate=true] If `true`, the "drag to rotate" interaction is enabled (see [`DragRotateHandler`](#DragRotateHandler)).
+ * @param {boolean} [options.dragPan=true] If `true`, the "drag to pan" interaction is enabled (see [`DragPanHandler`](#DragPanHandler)).
+ * @param {boolean} [options.keyboard=true] If `true`, keyboard shortcuts are enabled (see [`KeyboardHandler`](#KeyboardHandler)).
+ * @param {boolean} [options.doubleClickZoom=true] If `true`, the "double click to zoom" interaction is enabled (see [`DoubleClickZoomHandler`](#DoubleClickZoomHandler)).
+ * @param {boolean} [options.touchZoomRotate=true] If `true`, the "pinch to rotate and zoom" interaction is enabled (see [`TouchZoomRotateHandler`](#TouchZoomRotateHandler)).
+ * @param {boolean} [options.trackResize=true]  If `true`, the map will automatically resize when the browser window resizes.
+ * @param {LngLat} [options.center] The geographic coordinate on which the map's initial viewport is centered. TODO: What is default?
+ * @param {number} [options.zoom] The zoom level of the map's initial viewport. TODO: What is default?
+ * @param {number} [options.bearing] The bearing (rotation) of the map's initial viewport, measured in degrees counter-clockwise from north. TODO: What is default?
+ * @param {number} [options.pitch] The pitch of the map's initial viewport, measured in degrees. TODO: What is default?
  * @param {number} [options.workerCount=navigator.hardwareConcurrency - 1] The number of WebWorkers the map should use to process vector tile data.
  * @example
  * var map = new mapboxgl.Map({
